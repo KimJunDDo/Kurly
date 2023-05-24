@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" layout:decorator="fragments/layout" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="${forum.title}"></title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="jumbotron">
+        <h1 th:text="${forum.title}"></h1>
+        <p th:text="${forum.description}"></p>
+    </div>
+
+    <div sec:authorize="isAuthenticated()">
+        <div th:replace="fragments/forumControl :: forumControl(${forum})"></div>
+    </div>
+
+    <div th:if="${forum.isModerator()}">
+        <div th:replace="fragments/forumModerationControl :: forumModerationControl(${forum})"></div>
+    </div>
+
+    <div th:each="forum : ${forum.forums}">
+        <div th:replace="fragments/forum :: panel(${forum})"></div>
+    </div>
+
+    <div th:if="${forum.editable}">
+        <div th:replace="fragments/forum :: threads(${threads}, ${forum})"></div>
+    </div>
+</div>
+</body>
+</html>
