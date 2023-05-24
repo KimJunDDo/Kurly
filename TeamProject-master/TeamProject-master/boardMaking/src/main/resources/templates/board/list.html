@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>Board List</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<!--부트스트랩 css 추가-->
+    <link rel="stylesheet" href="/css/lib/bootstrap.min.css">
+
+	<style>
+    *{margin: 0px; padding: 0px;}
+ul{list-style: none;} /* 리스트 앞에 . 같은거 제거*/
+a{text-decoration: none;} /* 링크에 밑줄 같은거 제거*/
+
+header{
+    width: 800px; /*메인 이미지의 너비 사이즈와 같음*/
+    height: 95px;
+    background-color: #2d3a4b;
+
+    /* header 안에 요소들을 모두 absolute 포지션으로 배치할 것이라서 */
+    /* absolute 요소가 header의 좌상단을 기준으로 하려면 */
+    /* header의 position이 relative 여야만 함 */
+    position: relative;
+}
+
+/* 제목영역안에 있는 메인 로고 이미지 위치 지정 */
+#logo{
+    position: absolute;
+    top: 7px;
+    left: 10px;
+
+}
+
+/* 제목영역안에 오른쪽 상단에 top_menu 배치 */
+#top_menu{
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    color: white;
+}
+
+/* top_menu a의 글시 하얀색으로 */
+#top_menu a{color: white;}
+
+/* 헤더 영역안에 네비게이션 메뉴 배치 */
+nav{
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 16px;
+}
+
+nav li{
+    display: inline;
+    margin-left: 30px;
+}
+
+nav li a{color: white;}
+
+/* 콘텐츠 영역의 알래에 있는 배너 이미지 inline으로 */
+#content li{
+    display: inline;
+    margin-left: 50px;
+}
+/* footer 영역 */
+footer{
+    width: 800px; /*헤더와 같은 사이즈*/
+    height: 90px;
+    margin-top: 20px;
+    text-align: center;
+    background-color: #f1f1f1;
+}
+
+/* 전체 페이지가 가운데로 오도록 */
+#page{width: 820px; margin: 0px auto;}
+</style>
+	<!-- 2. 데스크탑용 외부 스타일시트 적용 -->
+	<link rel="stylesheet" href="style.css" media="(min-width:600px)">
+</head>
+<body>
+<div id="page">
+
+	<header>
+		<div id="logo">
+			<a href="/knu"><img src="img/knu.png" width="80" height="80"> </a>
+		</div>
+
+		<div id="top_menu">
+			<a href="/company">HOME</a> |
+			<a href="/index">LOGIN</a>
+		</div>
+
+		<nav>
+			<ul>
+				<li><a href="/company">Main</a></li>
+				<li><a href="/map">Map</a></li>
+				<li><a href="/board/list">Forum Board</a></li>
+			</ul>
+		</nav>
+
+	</header>
+
+	<article id="content">
+
+	<div id="wrapper">
+		<div class="container">
+	    	<form action="/board/list" id="frm" method="get">
+			    <div class="col-md-12 mt-4">
+			    	<button type="button" class="btn btn-danger" onclick="fnDelete()">삭제</button>
+			        <button type="button" class="btn btn-primary" onclick="javascript:location.href='/board/write'">작성</button>
+			        <table class="table table-striped table-horizontal table-bordered mt-3">
+			            <thead class="thead-strong">
+			                <tr>
+			                    <th width="5%"><input type="checkbox" id="chkAll"></th>
+			                    <th width="10%">게시글번호</th>
+			                    <th width="">제목</th>
+			                    <th width="20%">작성자</th>
+			                    <th width="10%">조회수</th>
+			                    <th width="20%">작성일</th>
+			                </tr>
+			            </thead>
+			            <tbody id="tbody">
+			            	<tr th:each="list,index : ${resultMap.list}" th:with="paging=${resultMap.paging}">
+								<td>
+									<input type="checkbox" name="deleteId" th:value="${list.id}">
+								</td>
+								<td>
+									<span th:text="${(resultMap.totalCnt - index.index) - (paging.pageNumber * paging.pageSize)}"></span>
+								</td>
+								<td>
+									<a th:href="@{./view(id=${list.id})}"><span th:text="${list.title}"></span></a>
+								</td>
+								<td>
+									<span th:text="${list.registerId}"></span>
+								</td>
+								<td>
+									<span th:text="${list.readCnt}"></span>
+								</td>
+								<td>
+									<span th:text="${#temporals.format(list.registerTime, 'yyyy-MM-dd HH:mm:ss')}"></span>
+								</td>
+							<tr>
+			            </tbody>
+			        </table>
+			        <div class="row">
+						<div class="col">
+							<ul class="pagination">
+								<li class="page-item" th:each="index : ${#numbers.sequence(1, resultMap.totalPage)}" th:with="paging=${resultMap.paging}">
+									<a class="page-link" th:classappend="${paging.pageNumber ==  (index-1)} ? bg-primary : bg-secondary" th:href="@{./list(page=${index - 1},page=${paging.pageSize})}">
+										<span class="text-white" th:text="${index}"></span>
+									</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+			    </div>
+		    </form>
+	    </div>
+    </div>
+    <!--부트스트랩 js, jquery 추가-->
+    <script src="/js/lib/jquery.min.js"></script>
+    <script src="/js/lib/bootstrap.min.js"></script>
+    <script th:inline="javascript">
+    	// header checkbox event
+    	$("#chkAll").click(function() {
+    		if (this.checked) {
+    			$("input[name='deleteId']").prop("checked", true);
+    		} else {
+    			$("input[name='deleteId']").prop("checked", false);
+    		}
+    	});
+    	
+    	// body checkbox event
+    	$("input[name='deleteId']").click(function() {
+    		let delInpLen = $("input[name='deleteId']").length;
+    		let delInpChkLen = $("input[name='deleteId']:checked").length;
+    		
+    		if (delInpLen == delInpChkLen) {
+    			$("#chkAll").prop("checked", true);
+    		} else {
+    			$("#chkAll").prop("checked", false);
+    		}
+    	});
+    
+		function fnDelete() {
+			let delInpChkLen = $("input[name='deleteId']:checked").length;
+			
+			if (delInpChkLen > 0) {
+				if (confirm("Do you want to delete it?")) {
+					let frm = $("#frm");
+					frm.attr("action","/board/delete");
+					frm.attr("method","post");
+					frm.submit();
+				}
+			} else {
+				alert("Not selected.");
+			}
+		}
+	</script>
+
+		<footer>
+			<a href="/knu"><img src="img/hairband.jpg" width="800" height="90"> </a>
+		</footer>
+</body>
+</html>
